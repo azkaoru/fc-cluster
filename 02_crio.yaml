@@ -1,0 +1,52 @@
+systemd:
+  units:
+    - name: installer.service
+      enabled: true
+      contents: |
+        [Unit]
+        Requires=network-online.target
+        After=network-online.target
+        [Service]
+        Type=oneshot
+        Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/opt/bin"
+        ExecStart=/usr/local/bin/installer
+        [Install]
+        WantedBy=multi-user.target
+passwd:
+  users:
+    - name: core
+      password_hash: "$6$hogehoge$1mzdXUmswSm9GriLnln9yth6lxp/FVIneduPkkbcb7pm0BHKhQchDjkjL3wcr8NvYMXA0E9WaNT.WtbbxOu6o/"
+      ssh_authorized_keys:
+        - "ssh-rsa <YOUR_KEY>"
+storage:
+  files:
+    - path: /etc/yum.repos.d/crio.repo
+      filesystem: root
+      mode: 493
+      contents:
+        inline: |
+          [cri-o]
+          name=CRI-O Packages
+          baseurl=https://cbs.centos.org/repos/paas7-crio-115-release/x86_64/os/
+          enabled=1
+          gpgcheck=0
+    - path: /opt/crictl-v1.15.0-linux-amd64.tar.gz
+      filesystem: root
+      mode: 420
+      contents:
+        remote:
+          url: https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.15.0/crictl-v1.15.0-linux-amd64.tar.gz
+    - path: /usr/local/bin/installer
+      filesystem: root
+      mode: 493
+      contents:
+        inline: |
+          #!/bin/bash
+          CRICTL_VERSION=v1.15.0
+          echo "=> installer.service..."
+
+          rpm-ostree install cri-o
+          systemctl enable crio
+          tar -C /usr/local/bin -k -xzf /opt/crictl-${CRICTL_VERSION}-linux-amd64.tar.gz
+          systemctl disable installer
+          systemctl reboot

@@ -1,0 +1,8 @@
+variant: fcos
+version: 1.0.0
+passwd:
+  users:
+    - name: core
+      password_hash: "$6$hogehoge$1mzdXUmswSm9GriLnln9yth6lxp/FVIneduPkkbcb7pm0BHKhQchDjkjL3wcr8NvYMXA0E9WaNT.WtbbxOu6o/"
+      ssh_authorized_keys:
+        - "ssh-rsa <YOUR_KEY>"
